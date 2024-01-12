@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đọc Chương Truyện</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #e49696;
+            color: rgb(12, 5, 5);
+            text-align: center;
+            padding: 1em;
+        }
+
+        #content-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        #chapter-content {
+            line-height: 1.6;
+        }
+
+        #navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        #go-back {
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #next-chapter {
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1 id="tenchuong"></h1>
+        <nav>
+            <ul id="back">
+                <a href="http://127.0.0.1:5500/home.html">Trang Chủ</a>
+                <a>Danh sách chương</a>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="content-container">
+        <div id="chapter-content">
+
+        </div>
+        <div id="navigation-buttons">
+            <button id="go-back">Chương trước</button>
+            <button id="next-chapter">Chương tiếp theo</button>
+        </div>
+    </div>
+
+    <script>
+        var serverurl = 'http://localhost:8081/xem-chuong' + window.location.search
+
+        fetch(serverurl)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (result) {
+                var eten = document.getElementById('tenchuong')
+                eten.innerHTML = `<p>${'Chương ' + result.stt + ': ' + result.name}</p>`
+                document.getElementById('chapter-content').innerHTML = ` <p>${result.content}</p>`
+                var u = 'http://127.0.0.1:5500/xem-chuong.html' + '?id_story=' + result.storyid + '&stt=' + (result.stt-1);
+                var urlstory = 'http://127.0.0.1:5500/story.html' + '?id_story=' + result.storyid;
+                var nextstt = result.stt + 1;
+                var nexturl = 'http://127.0.0.1:5500/xem-chuong.html' + '?id_story=' + result.storyid + '&stt=' + nextstt;
+                console.log(nexturl);
+                var dsli = document.getElementById('back').getElementsByTagName('a')
+                dsli[1].setAttribute('href', urlstory)
+
+                var btrc = document.getElementById('next-chapter')
+                btrc.addEventListener('click', function nextChapter() {
+                    if(result.content!='chưa có cập nhật chương này. Bạn nó thể quay lại sau.'){
+                        window.location.href = nexturl;
+                    }else{
+                        history.back()
+                    }
+                })
+
+                var btrc = document.getElementById('go-back')
+                btrc.addEventListener('click', function goBack() {
+                    if(result.content!='chưa có cập nhật chương này. Bạn nó thể quay lại sau.'){
+                    window.location.href =u+'&nob=1'
+                    }else{
+                        history.back()
+                    }
+                })
+            })
+
+
+
+
+
+    </script>
+
+</body>
+
+</html>

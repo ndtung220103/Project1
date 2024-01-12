@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #33cbfe;
+            padding: 20px;
+            text-align: center;
+        }
+        #profile-container {
+            display: flex;
+            max-width: 70%;
+            margin: 20px auto;
+            background-color: rgb(228, 241, 186);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .search-bar {
+            margin-top: 10px;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #f4f7f9;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            background-color: #4CAF50;
+            color: rgb(45, 15, 216);
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background-color: #45a049;
+        }
+
+        .pagination {
+            display: inline-block;
+        }
+
+        .pagination a {
+            color: black;
+            float: left;
+            padding: 8px 16px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Danh sách truyện</h1>
+        <div class="search-bar">
+            <input type="text" id="searchname" placeholder="Tìm kiếm theo tên">
+            <button id="ttimkiem">Tìm kiếm theo tên</button>
+            <select name="Thể loại" id="category">
+                <option value="0">--Thể loại--</option>
+                <option value="a">Hài hước</option>
+                <option value="b">Lãng mạn</option>
+                <option value="c">Viễn tưởng</option>
+                <option value="d">Phiêu lưu</option>
+                <option value="e">Cổ trang</option>
+                <option value="f">Hành động</option>
+                <option value="g">Tâm lí</option>
+                <option value="h">Thể thao</option>
+                <option value="i">Học đường</option>
+            </select>
+            <select name="Nguồn" id="source">
+                <option value="0">--Nguồn gốc--</option>
+                <option value="dịch">Dịch</option>
+                <option value="st">Sáng tác</option>
+            </select>
+            <select name="Sắp xếp theo" id="sx">
+                <option value="0">--Sắp xếp theo--</option>
+                <option value="1">Ngày tháng</option>
+                <option value="2">Lượt xem</option>
+            </select>
+            <button id="timkiem">Tìm kiếm</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="profile-container">
+            <div style="padding: 30px;">
+                <button id="returnhome">Về trang chủ</button>
+                <h3 id="tttimkiem">Danh sách truyện tìm được</h3>
+                <table id="storyTable">
+                </table>
+                <div class="pagination" style="display: inline-block" id="numberpage">
+                </div>
+                <br><br>
+                <button id="myBtn" title="Lên đầu trang"> Lên đầu trang</button>
+                <br><br><br>
+            </div>
+        </div>
+    </main>
+
+    <script>var rehome = document.getElementById('returnhome')
+        rehome.onclick = function (e) {
+            window.location.href = "http://127.0.0.1:5500/home.html"
+        }
+    </script>
+
+    <script>
+        var name, category, source, view
+        var iname = document.getElementById('searchname')
+        var icategory = document.getElementById('category')
+        var isource = document.getElementById('source')
+        var iview = document.getElementById('sx')
+        iname.oninput = function (e) {
+            name = e.target.value;
+        }
+        icategory.onchange = function (e) {
+            category = e.target.value;
+        }
+        isource.onchange = function (e) {
+            source = e.target.value;
+        }
+        iview.onchange = function (e) {
+            view = e.target.value;
+        }
+        var timkiem = document.getElementById('timkiem')
+        timkiem.onclick = function (e) {
+            var url = 'http://127.0.0.1:5500/danh-sach-truyen.html?page=1'
+            var search
+            if (category != undefined && source != undefined && view != undefined) {
+                search = '&category=' + category + '&source=' + source + '&view=' + view
+            } else if (category != undefined && source != undefined && view === undefined) {
+                search = '&category=' + category + '&source=' + source
+            } else if (category != undefined && source === undefined && view != undefined) {
+                search = '&category=' + category + '&view=' + view
+            } else if (category === undefined && source != undefined && view != undefined) {
+                search = '&source=' + source + '&view=' + view
+            } else if (category != undefined && source === undefined && view === undefined) {
+                search = '&category=' + category
+            } else if (category === undefined && source != undefined && view === undefined) {
+                search = '&source=' + source
+            } else if (category === undefined && source === undefined && view != undefined) {
+                if (view === 2) {
+                    search = '&view=' + view
+                }
+            }
+            if (search != undefined) {
+                url = url + search
+            }
+            window.location.href = url
+        }
+        var ttimkiem = document.getElementById('ttimkiem')
+        ttimkiem.onclick = function (e) {
+            if (name != '') {
+                window.location.href = 'http://127.0.0.1:5500/danh-sach-truyen.html?page=1' + '&name=' + name
+            }
+        }
+
+        var apiurl = 'http://localhost:8081/danh-sach-truyen' + window.location.search
+        fetch(apiurl)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (result) {
+                //in truyện
+                var ds1 = document.getElementById('storyTable')
+                var ds2 = result.ds
+                var listds = ds2.map(function (phantuds) {
+                    const d = new Date(phantuds.modifiedDate)
+                    var m=d.getUTCMonth()+1
+                    var ngay='ngày '+d.getUTCDate() +' tháng '+m+' năm '+d.getUTCFullYear()
+                    var link = 'http://127.0.0.1:5500/story.html?id_story=' + phantuds.id
+                    return `<div class="item">
+                    <img src=${phantuds.avt}
+                        style="width: 15%;">
+                    <div class="top-notice">
+                        <span class="time-ago"> Ngày cập nhật: ${ngay}</span>
+                    </div>
+                    <h3 class="title">
+                        <a href=${link}>${phantuds.name}</a>
+                    </h3>
+                    <div class="view">
+                        <p>Tổng số lượt xem : ${phantuds.view}</p>
+                    </div>
+                </div>`
+                });
+                var x = listds.join('');
+                ds1.innerHTML = x;
+
+                //xử lí page
+                var page = result.page
+                var totalpage = result.totalPage
+               // console.log(result)
+                if (totalpage === 0) {
+                    document.getElementById('storyTable').innerHTML = `<div>Không có truyện nào phù hợp</div>`
+                } else {
+                    var epage = document.getElementById('numberpage')
+                    var tem = `<a href="#">&laquo;</a>`
+                    for (var i = 1; i <= totalpage; i++) {
+                        tem = tem + `<a>${i}</a>`
+                    }
+                    tem = tem + `<a href="#">&raquo;</a>`
+                    epage.innerHTML = tem
+                   // console.log(epage)
+                    var eventpage = epage.getElementsByTagName('a');
+                    for (var i = 1; i < eventpage.length - 1; i++) {
+                        eventpage[i].addEventListener('click', function (e) {
+                            var baseurl = 'http://127.0.0.1:5500/danh-sach-truyen.html'
+                            var search = window.location.search
+                            //console.log(search)
+                            //console.log(e.target.innerText)
+                            var oldpage = search.slice(0, 7)
+                            //console.log(oldpage)
+                            var newpage = '?page=' + e.target.innerText
+                            search = search.replace(oldpage, newpage)
+                            //console.log(search)
+                            var furl = baseurl + search
+                            console.log(furl)
+                            // Chuyển đến trang 
+                            window.location.href = furl
+                        });
+                    }
+                }
+            })
+    </script>
+    <script>
+        window.onscroll = function () { scrollFunction() };
+        function scrollFunction() {
+
+            if (document.body.scrollTop > 600 || document.documentElement.scrollTop > 600) {
+                document.getElementById("myBtn").style.display = "block";
+            } else {
+                document.getElementById("myBtn").style.display = "none";
+            }
+        }
+
+        document.getElementById('myBtn').addEventListener("click", function () {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #0fcddb;
+            color: white;
+            text-align: center;
+            padding: 1em;
+        }
+
+        #profile-container {
+            display: flex;
+            max-width: 100%;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #avatar {
+            flex: 0.5;
+            padding: 20px;
+            background-color: #ece7e7;
+            text-align: center;
+        }
+
+        #profile-info {
+            flex: 2;
+            padding: 20px;
+        }
+
+        #books-list {
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 1px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .chat-messages {
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background-color: #f1f1f1;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .chat-input button {
+            padding: 10px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background-color: #68c9d6;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>TRUYỆN TÙNG</h1>
+        <li><a href="http://127.0.0.1:5500/home.html">Trang Chủ</a></li>
+    </header>
+
+    <div id="profile-container">
+        <div id="avatar">
+            <img src="https://o.rada.vn/data/image/2023/04/14/hinh-nen-may-tinh-7.jpg" alt="Avatar"
+                style="max-width: 100%;">
+        </div>
+        <div id="profile-info">
+            <div id="tt">
+
+            </div>
+            <div id="books-list">
+                <h2>Danh sách chương</h2>
+                <ul id="dschuong" style="overflow: scroll ; height: 200px;">
+                    <!-- Thêm các mục khác nếu cần -->
+                </ul>
+            </div>
+
+            <h3>Bình luận</h3>
+            <div class="chat-input">
+                <textarea id="addcomment" name="addcomment" rows="3"></textarea>
+                <button id="sendmess">Send</button>
+            </div>
+            <br>
+            <div class="chat-messages" id="chat-messages" style="overflow: auto ; height: 600px;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // key-value thể loại
+        var maptl = {
+            'a': 'Hài hước',
+            'b': 'Lãng mạn',
+            'c': 'Viễn tưởng',
+            'd': 'Phiêu lưu',
+            'e': 'Cổ trang',
+            'f': 'Hành động',
+            'g': 'Tâm lí',
+            'h': 'Thể thao',
+            'i': 'Học đường'
+        }
+
+        // cập nhật thời điểm truy cập của user
+        var nameuser = ''  // ten nguoi tao truyen
+        var u = window.location.search;
+        var x = 'http://localhost:8081/story' + u
+        var id;
+        var date = new Date();
+        var key = 'token' + date.getDay() + date.getMonth() + date.getFullYear();
+        var tokenbearer = localStorage.getItem(key)
+        if (tokenbearer != null) {
+            fetch('http://localhost:8081/user/updateDate' + u, {
+                method: "GET", // *GET, POST, PUT, DELETE, etc.
+                mode: "cors", // no-cors, *cors, same-origin
+                cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: "same-origin", // include, *same-origin, omit
+                headers: {
+                    "Authorization": tokenbearer,
+                    "Content-Type": "application/json"
+                },
+                redirect: "follow", // manual, *follow, error
+                referrerPolicy: "no-referrer",
+            })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (result) {
+                    console.log(result.name);
+                })
+        }
+
+        // lấy dữ liệu
+        fetch(x)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (re) {
+                // console.log(re.shortD)
+                nameuser = re.nameuser;
+                id = re.id;
+                var avtt = document.getElementById('avatar')
+                avtt.innerHTML = `<img src=${re.avt}
+                        style="width: 100%;" alt="Avatar">`
+                var nd = re.shortD;
+                var p = document.getElementById('tt')
+                // set ngày tháng
+                var date = new Date(re.createDate)
+                var m = date.getUTCMonth() + 1
+                var ngay = 'ngày ' + date.getUTCDate() + ' tháng ' + m + ' năm ' + date.getUTCFullYear()
+                //set thể loại
+                var string = re.category;
+                var newstring = ''
+                for (var i = 0; i <= string.length; i = i + 2) {
+                    var substr = string.slice(i, i + 1)
+                    newstring = newstring + maptl[substr] + ',   '
+                }
+                var nguon = "Dịch";
+                if (re.source === 'st') {
+                    nguon = 'Sáng tác'
+                }
+                // thong tin truyện
+                p.innerHTML = `<p><strong>Tên truyện: </strong>${re.name}</p>
+                        <p><strong>Ngày Tạo: </strong>${ngay}</p>
+                        <p><strong>Thể loại: </strong>${newstring}</p>
+                        <p><strong>Nguồn: </strong>${nguon}</p>
+                        <p><strong>Tác giả: </strong>${re.author}</p>
+                        <p><strong>Lượt xem: </strong>${re.view}</p>
+                        <div><strong>Nội dung: </strong>${nd}</div>
+                        <br>
+                        <button id="themdsdoc" style="background-color: #96c16c;size: 2cap;">Thêm vào danh sách đọc</button>`
+                var dschuongs = re.dschuong.map(function (c) {
+                    return `<p>Chương <strong>${c.stt}</strong>: ${c.name}</p>`;
+                });
+
+                //ds chương
+                var ds = dschuongs.join('');
+                document.getElementById('dschuong').innerHTML = ds;
+                var dse = document.getElementById('dschuong');
+                var dsp = dse.getElementsByTagName('p');
+                for (var i = 0; i < dsp.length; i++) {
+                    dsp[i].addEventListener('click', function (e) {
+                        var baseurl = 'http://127.0.0.1:5500/xem-chuong.html'
+                        var stt = e.target.getElementsByTagName('strong');
+                        var furl = baseurl + u + '&stt=' + stt[0].innerHTML
+                        //console.log(furl)
+                        // Chuyển đến trang đọc chương
+                        window.location.href = furl
+                    });
+                }
+
+                // thêm vào danh sách đọc
+                document.getElementById('themdsdoc').onclick = function (e) {
+                    let date1 = new Date();
+                    let key1 = 'token' + date1.getDay() + date1.getMonth() + date1.getFullYear();
+                    let tokenbearer1 = localStorage.getItem(key1)
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fetch('http://localhost:8081/user/them-ds-doc' + u, {
+                        method: "GET", // *GET, POST, PUT, DELETE, etc.
+                        mode: "cors", // no-cors, *cors, same-origin
+                        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                        credentials: "same-origin", // include, *same-origin, omit
+                        headers: {
+                            "Authorization": tokenbearer1,
+                            "Content-Type": "application/json"
+                        },
+                        redirect: "follow", // manual, *follow, error
+                        referrerPolicy: "no-referrer",
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (result) {
+                            if (result.name === 'Thành công') {
+                                alert('Bạn đã thêm vào danh sách đọc')
+                            } else {
+                                alert(result.name);
+                            }
+                        })
+                        .catch(function (err) {
+                            alert('Có lỗi ở server!')
+                        });
+                }
+
+
+                // add comment
+                var urladd = 'http://localhost:8081/user/comment'
+                var string = '';
+                var content;
+                document.getElementById('addcomment').onchange = function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    string = e.target.value;
+                    let textArray = string.split('\n');
+                    content = textArray.join('<br>');
+                }
+                document.getElementById('sendmess').onclick = function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (tokenbearer != null) {
+                        if (string === '') {
+                            alert('Bạn chưa nhập nội dung bình luận!')
+                        } else {
+                            var commentdto = {
+                                storyid: id,
+                                content: content
+                            }
+
+                            fetch(urladd, {
+                                method: "POST", // *GET, POST, PUT, DELETE, etc.
+                                mode: "cors", // no-cors, *cors, same-origin
+                                cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                                credentials: "same-origin", // include, *same-origin, omit
+                                headers: {
+                                    "Authorization": tokenbearer,
+                                    "Content-Type": "application/json"
+                                },
+                                redirect: "follow", // manual, *follow, error
+                                referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                                body: JSON.stringify(commentdto),
+                            })
+                                .then(function (response) {
+                                    return response.json();
+                                })
+                                .then(function (result) {
+                                    if (result.content === 'Đã comment thành công') {
+                                        window.location.reload();
+                                    } else {
+                                        alert(result.name)
+                                    }
+                                })
+                                .catch(function (err) {
+                                    alert('Có lỗi ở server!')
+                                });
+                        }
+                    } else {
+                        alert('Bạn chưa đăng nhập. Hãy đăng nhập để bình luận!')
+                    }
+                }
+
+                //load comments
+                var listurlc = 'http://localhost:8081/listcomment?storyid=' + id
+                fetch(listurlc)
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (result) {
+                        var dsbl = result.map(function (bl) {
+                            let date = new Date(bl.createDate)
+                            let m = date.getUTCMonth() + 1
+                            let ngay = 'ngày ' + date.getUTCDate() + ' tháng ' + m + ' năm ' + date.getUTCFullYear()
+                            var tentg = ''
+                            if (bl.nameuser === nameuser) {
+                                tentg = ' (Người đăng truyện!) '
+                            }
+                            return `<li style="font-size: 17px;font-weight: bold;"> ${bl.nameuser + tentg}
+                                    <div style=" font-size: small;font-style: italic;font-weight:lighter;">Ngày đăng: ${ngay}</div>
+                                    <br>
+                                    <div style="font-size: medium;font-weight:lighter;">${bl.content}</div>
+                                    </li>  <div style="color: red; font-size: small;font-style: italic;font-weight:lighter;text-align: right;"> <span id="?id_comment=${bl.id}"> Xóa </span></div> <br><br>`
+                        })
+                        var lisds = dsbl.join('')
+                        document.getElementById('chat-messages').innerHTML = lisds
+
+                        //them sk xóa comment
+                        let t = document.getElementById('chat-messages').querySelectorAll('span');
+                        for (let i = 0; i < t.length; i++) {
+                            t[i].onclick = function (e) {
+                                e.stopPropagation();
+                                // console.log(e.target.getAttribute('id'))
+                                if (confirm('Bạn có chắc muốn xóa bình luận này không?')) {
+                                    let search = e.target.getAttribute('id')
+                                    let urlapi = 'http://localhost:8081/user/delete-comment' + search;
+                                    fetch(urlapi, {
+                                        method: "DELETE", // *GET, POST, PUT, DELETE, etc.
+                                        mode: "cors", // no-cors, *cors, same-origin
+                                        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                                        credentials: "same-origin", // include, *same-origin, omit
+                                        headers: {
+                                            "Authorization": tokenbearer,
+                                            "Content-Type": "application/json"
+                                        },
+                                        redirect: "follow", // manual, *follow, error
+                                        referrerPolicy: "no-referrer",
+                                    })
+                                        .then(function (response) {
+                                            return response.json();
+                                        })
+                                        .then(function (result) {
+                                            if (result.content === 'Xóa thành công') {
+                                                window.location.reload();
+                                            } else {
+                                                alert(result.content);
+                                            }
+                                        })
+                                        .catch(function (arr) {
+                                            alert('Có lỗi ở server!');
+                                        })
+                                }
+                            }
+                        }
+                    })
+            })
+    </script>
+
+
+</body>
+
+</html>

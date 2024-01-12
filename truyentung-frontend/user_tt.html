@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Cá Nhân</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #0fcddb;
+            color: white;
+            text-align: center;
+            padding: 1em;
+        }
+
+        #profile-container {
+            display: flex;
+            max-width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #avatar {
+            flex: 0.5;
+            padding: 20px;
+            background-color: #ece7e7;
+            text-align: center;
+        }
+
+        #profile-info {
+            flex: 2;
+            padding: 20px;
+        }
+
+        #books-list {
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 1px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        nav {
+            background-color: #216fae;
+            color: #fff;
+            padding: 0.5em;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 10px;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* Định dạng các button mô tả cho nội dung*/
+        button.accordion {
+            background-color: #eee;
+            color: #444;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            text-align: left;
+            border: none;
+            outline: none;
+            transition: 0.4s;
+        }
+
+        /* Thêm màu nền cho button được active hoặc được hover*/
+        button.accordion.active,
+        button.accordion:hover {
+            background-color: #ddd;
+        }
+
+        /* Thiết lập cho phần nội dung, mặc định sẽ được ẩn đi */
+        div.panel {
+            padding: 0 18px;
+            background-color: white;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Thông Tin Cá Nhân</h1>
+        <nav>
+            <ul id="bar">
+                <li><a href="http://127.0.0.1:5500/home.html">Home</a></li>
+                <li><a href="http://127.0.0.1:5500/them-truyen.html">Thêm truyện</a></li>
+                <li><a href="http://127.0.0.1:5500/them-chuong.html">Thêm-Sửa-Xóa Chương</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="profile-container">
+        <div id="avatar" >
+        </div>
+        <div id="profile-info">
+            <p id="1x"></p>
+            <p id="2x"></p>
+            <p id="3x"></p>
+            <div id="books-list">
+                <h2>Danh Sách Truyện Đã Đăng</h2>
+                <ul id="khung" style="overflow: auto ; height: 400px;">
+                </ul>
+
+                <h2>Danh Sách Truyện Đang Theo Dõi</h2>
+                <ul id="dstheodoi" style="overflow: auto ; height: 500px;">
+                </ul>
+            </div>
+
+            <!-- Thêm các mục khác nếu cần -->
+            </ul>
+        </div>
+    </div>
+    </div>
+    <script>
+        var date = new Date();
+        var key = 'token' + date.getDay() + date.getMonth() + date.getFullYear();
+        var tokenbearer = localStorage.getItem(key)
+        // lấy thông tin
+        if(tokenbearer!=null) {
+        var url = 'http://localhost:8081/user/tt'
+        fetch(url, {
+            method: "GET", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Authorization": tokenbearer,
+                "Content-Type": "application/json"
+            }
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (result) {
+                //các trường thông tin
+                var image = new Image();
+                image.src = result.avt;
+                document.getElementById('avatar').appendChild(image)
+                var xxx=document.getElementsByTagName('img')[0]
+                xxx.setAttribute('style','width: 100%')
+                document.getElementById('1x').innerHTML = `<strong>Tên: </strong>${result.sname}`
+                const d = new Date(result.createDate)
+                var m = d.getUTCMonth() + 1
+                var ngay = 'ngày ' + d.getUTCDate() + ' tháng ' + m + ' năm ' + d.getUTCFullYear()
+                document.getElementById('2x').innerHTML = `<strong>Ngày tạo: </strong>${ngay}`
+                document.getElementById('3x').innerHTML = `<strong>Email: </strong>${result.email}`
+
+                //danh sách truyen
+                var liststory = result.liststory
+                var lists = liststory.map(function (estory) {
+                    // xử lí chương
+                    var listchap = estory.dschuong
+                    var list1 = listchap.map(function (chap) {
+                        return ` <li style="Margin:5px">STT: ${chap.stt} Tên chương: ${chap.name}</li> `
+                    })
+                    var list2 = list1.join('')
+                    // truyen
+                    var urls = 'http://127.0.0.1:5500/story.html?id_story=' + estory.id
+                    return `<button class="accordion" style="font-family: serif; font-size:20px;font-weight: bold;">ID ${estory.id}: ${estory.name} <a href=${urls} style="float:right;Margin:10px">Đến truyện</a></button>
+                    <div class="panel">
+                        <ul style="overflow: auto ; height: 200px;">
+                            ${list2}
+                        </ul>
+                    </div>`
+                })
+                var list3 = lists.join('')
+                var eds = document.getElementById('khung')
+                eds.innerHTML = list3
+
+                //danhsachtruyentheodoi
+                var listfollow = result.listfollow
+                var listf = listfollow.map(function (fstory) {
+                    var notice=''
+                    if(fstory.modifiedDate>fstory.visituserdate){
+                        notice='Có cập nhật!!!'
+                    }
+                    var urlf = 'http://127.0.0.1:5500/story.html?id_story=' + fstory.id
+                    return `<p style="color: red;font-size: 15px;font-weight:bold;Margin-bottom:0px;font-style: italic;">${notice}</p>
+                    <button class="accordion" style="font-family: serif; font-size:20px;font-weight: bold;">ID ${fstory.id}: ${fstory.name} <a href=${urlf} style="float:right;Margin:10px">Đến truyện</a></button>
+                    <button value=${fstory.id}> Xóa</button>`
+                })
+                var list4 = listf.join('')
+                var edf = document.getElementById('dstheodoi')
+                edf.innerHTML = list4
+
+                // xoa ds doc
+                let listbutton=edf.querySelectorAll('button');
+                for(let i=1;i<listbutton.length;i+=2){
+                    listbutton[i].onclick=function(e){
+                        e.stopPropagation();
+                        if(confirm('Bạn có chắc muốn xóa truyện này khỏi danh sách đọc?')){
+                            let search=e.target.getAttribute('value');
+                            let urld='http://localhost:8081/user/xoa-khoi-ds-doc?id_story='+search
+                            fetch(urld,{
+                                method: "DELETE", // *GET, POST, PUT, DELETE, etc.
+                                        mode: "cors", // no-cors, *cors, same-origin
+                                        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                                        credentials: "same-origin", // include, *same-origin, omit
+                                        headers: {
+                                            "Authorization": tokenbearer,
+                                            "Content-Type": "application/json"
+                                        },
+                                        redirect: "follow", // manual, *follow, error
+                                        referrerPolicy: "no-referrer",
+                            })
+                            .then(function(response){
+                                return response.json();
+                            })
+                            .then(function(result){
+                                if(result.content==='Xóa thành công!'){
+                                    window.location.reload();
+                                }else{
+                                    alert(result.content);
+                                }
+                            })
+                            .catch(function(err){
+                                alert('Có lỗi ở server');
+                            })
+                        }
+                    }
+                }
+
+
+                //Lấy các button mô tả nội dung
+                var acc = document.getElementsByClassName("accordion");
+                var i;
+                //lặp qua các button để gán sự kiện
+                for (i = 0; i < acc.length; i++) {
+                    acc[i].onclick = function () {
+                        /* Thêm/xóa class active để đánh dấu các button đã được click */
+                        this.classList.toggle("active");
+
+                        /* Hiển thị hoặc ẩn nội dung khi button được click */
+                        var panel = this.nextElementSibling;
+                        if (panel.style.display === "block") {
+                            panel.style.display = "none";
+                        } else {
+                            panel.style.display = "block";
+                        }
+                    }
+                }
+
+            })
+            .catch(function (urr) {
+                alert('Có lỗi ở server!')
+            })
+          }else{
+              var u=confirm("Bạn cần đăng nhập. Quay về trang chủ")
+              window.location.href="http://127.0.0.1:5500/home.html"
+          }
+
+
+    </script>
+</body>
+
+</html>

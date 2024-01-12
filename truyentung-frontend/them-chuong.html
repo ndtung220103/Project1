@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Truyện</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 100px;
+            border-radius: 100px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 700px;
+            height: 100%;
+        }
+
+        form {
+            display: grid;
+            gap: 15px;
+            width: 100%;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 500px;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 500px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <form id="chapterform" enctype="multipart/form-data">
+            <label for="storyID">ID truyện</label>
+            <input type="text" id="storyID" name="storyID" required>
+
+            <label for="STT">STT</label>
+            <input type="text" id="STT" name="STT" required>
+            <button id="delete">Xóa</button>
+
+            <label for="Tên">Tên </label>
+            <textarea id="Tên" name="name"></textarea>
+
+            <label for="description">Nội dung</label>
+            <textarea id="description" name="description" rows="5000" autofocus
+                style="width: 500px; height:300px ;"></textarea>
+
+            <button id="submit">Thêm mới/Cập nhật</button>
+            <br>
+        </form>
+        <button style="width: 30%;" id="backhome"> back</button>
+    </div>
+
+    <script>
+
+        var x = document.getElementById('backhome')
+        x.addEventListener('click', back)
+
+        function back() {
+            window.location.href = "http://127.0.0.1:5500/user_tt.html"
+        }
+        var name = ''
+        var inputname = document.getElementById('Tên')
+        inputname.onchange = function (e) {
+            name = e.target.value;
+        }
+        var ID = ''
+        var inputID = document.getElementById('storyID')
+        inputID.onchange = function (e) {
+            ID = e.target.value;
+        }
+        var stt = ''
+        var inputstt = document.getElementById('STT')
+        inputstt.onchange = function (e) {
+            stt = e.target.value;
+        }
+        var description, textArray, newText = ''
+        var inputdes = document.getElementById('description')
+        inputdes.onchange = function (e) {
+            description = e.target.value;
+            textArray = description.split('\n');
+            newText = textArray.join('<br>');
+        }
+        //xoa
+        var xoa = document.getElementById('delete')
+        xoa.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (ID === '' || stt === '') {
+                alert('Bạn hãy nhập ID truyện và STT của chương muốn xóa!')
+            } else {
+                var date = new Date();
+                var key = 'token' + date.getDay() + date.getMonth() + date.getFullYear();
+                var tokenbearer = localStorage.getItem(key)
+                let urlc = 'http://localhost:8081/user/xoa-chuong' + '?storyid=' + ID + '&stt=' + stt
+                fetch(urlc, {
+                    method: "GET", // *GET, POST, PUT, DELETE, etc.
+                    mode: "cors", // no-cors, *cors, same-origin
+                    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                    credentials: "same-origin", // include, *same-origin, omit
+                    headers: {
+                        "Authorization": tokenbearer,
+                        "Content-Type": "application/json"
+                    },
+                    redirect: "follow", // manual, *follow, error
+                    referrerPolicy: "no-referrer", // 
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (result) {
+                        console.log(result);
+                        if (result.content === 'Đã xóa thành công') {
+                            alert('Đã xóa thành công!')
+                        } else {
+                            alert(result.content)
+                        }
+                    })
+                    .catch(function (err) {
+                        alert('Có lỗi ở server!')
+                    });
+            }
+        }
+
+
+        //cap nhat
+        var themsua= document.getElementById('submit')
+        themsua.onclick = function (e) {
+            if (ID === '' || stt === '' || newText === '' || name === '') {
+                alert('Bạn hãy điền đầy đủ thông tin của chương')
+            } else {
+                var date = new Date();
+                var key = 'token' + date.getDay() + date.getMonth() + date.getFullYear();
+                var tokenbearer = localStorage.getItem(key)
+                let urlc = 'http://localhost:8081/user/them-chuong'
+                var objchapter = {
+                    storyid: ID,
+                    stt: stt,
+                    name: name,
+                    content:newText
+                }
+                fetch(urlc, {
+                    method: "POST", // *GET, POST, PUT, DELETE, etc.
+                    mode: "cors", // no-cors, *cors, same-origin
+                    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                    credentials: "same-origin", // include, *same-origin, omit
+                    headers: {
+                        "Authorization": tokenbearer,
+                        "Content-Type": "application/json"
+                    },
+                    redirect: "follow", // manual, *follow, error
+                    referrerPolicy: "no-referrer", 
+                    body: JSON.stringify(objchapter), 
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (result) {
+                        if (result.name===name) {
+                            alert('Đã thêm thành công!')
+                        } else {
+                            alert(result.content)
+                        }
+                    })
+                    .catch(function (err) {
+                        alert('Có lỗi ở server!')
+                    });
+            }
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Truyện</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 100px;
+            border-radius: 100px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        form {
+            display: grid;
+            gap: 15px;
+            width: 100%;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <form id="storyForm" enctype="multipart/form-data" >
+            <label for="storyName">Tên Truyện:</label>
+            <input type="text" id="storyName" name="storyName" required>
+
+
+            <label for="genre">Thể Loại:</label>
+            <div style="overflow: auto ; height: 200px;">
+                <form id="categoryyy">
+                    <input id="c1" type="checkbox" value="a" style="width: 50%;" />Hài hước
+                    <input id="c2" type="checkbox" value="b" style="width: 50%;" />Lãng mạn
+                    <input id="c3" type="checkbox" value="c" style="width: 50%;" />Viễn tưởng
+                    <input id="c4" type="checkbox" value="d" style="width: 50%;" />Phiêu lưu
+                    <input id="c5" type="checkbox" value="e" style="width: 50%;" />Cổ trang
+                    <input id="c6" type="checkbox" value="f" style="width: 50%;" />Hành động
+                    <input id="c7" type="checkbox" value="g" style="width: 50%;" />Tâm lí
+                    <input id="c8" type="checkbox" value="h" style="width: 50%;" />Thể thao
+                    <input id="c9" type="checkbox" value="i" style="width: 50%;" />Học đường
+                </form>
+                <!-- Thêm các thể loại khác theo nhu cầu -->
+            </div>
+
+            <label for="author">Tác Giả:</label>
+            <input type="text" id="author" name="author" required>
+
+            <label for="avatar">Ảnh Đại Diện:</label>
+            <input type="file" id="avatar" name="avatar" accept="image/*" onchange="encodeImageFileAsURL(this)">
+
+            <label for="description">Mô Tả Ngắn:</label>
+            <textarea id="description" name="description" rows="10" required></textarea>
+
+            <button type="submit" id="submit">Gửi</button>
+            <br><br>
+            <button style="width: 30%;"><a href="http://127.0.0.1:5500/user_tt.html" style="font-family: serif; font-size:15px;font-weight: bold"> Back_user</a></button>
+        </form>
+    </div>
+
+    <script>
+        //window.location.href='http://127.0.0.1:5500/them-truyen.html'
+        var re;
+        function encodeImageFileAsURL(element) {
+            var file = element.files[0];
+            var reader = new FileReader();
+            reader.onloadend = function () {
+                re = reader.result;
+            }
+            reader.readAsDataURL(file);
+        }
+        var name
+        var inputname = document.getElementById('storyName')
+        inputname.onchange = function (e) {
+            name = e.target.value;
+        }
+        var author
+        var inputauthor = document.getElementById('author')
+        inputauthor.onchange = function (e) {
+            author = e.target.value;
+        }
+        var description,newText
+        var inputdes = document.getElementById('description')
+        inputdes.onchange = function (e) {
+            description = e.target.value;
+            let textArray = description.split('\n');
+            newText = textArray.join('<br>');
+        }
+
+        var string = ''
+        var restring = ''
+        for (var i = 1; i < 10; i++) {
+            var einput = document.getElementById('c' + i)
+            einput.onchange = function (e) {
+                string = string + e.target.value + '-'
+            }
+        }
+
+        var gui = document.getElementById('submit')
+        gui.onclick = function (e) {
+            restring = string.slice(0, -1)
+            if (name != undefined && author != undefined && description != undefined && re != undefined) {
+                var objstory = {
+                    name: name,
+                    category: restring,
+                    avt: re,
+                    author: author,
+                    shortD: newText
+                }
+                var date = new Date();
+                var key = 'token' + date.getDay() + date.getMonth() + date.getFullYear();
+                var tokenbearer = localStorage.getItem(key)
+                var url = 'http://localhost:8081/user/them-truyen'
+                fetch(url, {
+                    method: "POST", // *GET, POST, PUT, DELETE, etc.
+                    mode: "cors", // no-cors, *cors, same-origin
+                    cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                    credentials: "same-origin", // include, *same-origin, omit
+                    headers: {
+                        "Authorization": tokenbearer,
+                        "Content-Type": "application/json"
+                    },
+                    redirect: "follow", // manual, *follow, error
+                    referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                    body: JSON.stringify(objstory),
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (result) {
+                        if(result.name===name){
+                            alert('Tạo thành công truyện ')
+                        }else{
+                            alert(result.name)
+                        }
+                    })
+                    .catch(function (err) {
+                        alert('Có lỗi ở server!')
+                    });
+
+            } else {
+                alert('Bạn hãy điền đầy đủ các trường thông tin')
+            }
+        }
+    </script>
+
+</body>
+
+</html>
